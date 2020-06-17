@@ -19,6 +19,7 @@ package org.jivesoftware.openfire;
 import org.dom4j.QName;
 import org.jivesoftware.openfire.carbons.Sent;
 import org.jivesoftware.openfire.container.BasicModule;
+import org.jivesoftware.openfire.domain.DomainManager;
 import org.jivesoftware.openfire.forward.Forwarded;
 import org.jivesoftware.openfire.interceptor.InterceptorManager;
 import org.jivesoftware.openfire.interceptor.PacketRejectedException;
@@ -97,7 +98,7 @@ public class MessageRouter extends BasicModule {
 
                 // Check if the message was sent to the server hostname
                 if (recipientJID.getNode() == null && recipientJID.getResource() == null &&
-                        serverName.equals(recipientJID.getDomain())) {
+                		DomainManager.getInstance().isRegisteredDomain(recipientJID.getDomain())) {
                     if (packet.getElement().element("addresses") != null) {
                         // Message includes multicast processing instructions. Ask the multicastRouter
                         // to route this packet
@@ -247,7 +248,7 @@ public class MessageRouter extends BasicModule {
         log.debug( "Message sent to unreachable address: " + packet.toXML() );
         final Message msg = (Message) packet;
 
-        if ( msg.getType().equals( Message.Type.chat ) && serverName.equals( recipient.getDomain() ) && recipient.getResource() != null ) {
+        if ( msg.getType().equals( Message.Type.chat ) && DomainManager.getInstance().isRegisteredDomain(recipient.getDomain() ) && recipient.getResource() != null ) {
             // Find an existing AVAILABLE session with non-negative priority.
             for (JID address : routingTable.getRoutes(recipient.asBareJID(), packet.getFrom())) {
                 ClientSession session = routingTable.getClientRoute(address);
@@ -261,7 +262,7 @@ public class MessageRouter extends BasicModule {
             }
         }
 
-        if ( serverName.equals( recipient.getDomain() ) )
+        if ( DomainManager.getInstance().isRegisteredDomain( recipient.getDomain() ) )
         {
             // Delegate to offline message strategy, which will either bounce or ignore the message depending on user settings.
             log.trace( "Delegating to offline message strategy." );
